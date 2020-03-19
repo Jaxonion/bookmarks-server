@@ -5,6 +5,7 @@ const cors = require('cors')
 const helmet = require('helmet')
 const { NODE_ENV } = require('./config')
 const winston = require('winston')
+const BooksService = require('./books-service')
 
 
 const uuid = require('uuid/v4')
@@ -37,7 +38,7 @@ app.use(express.json());
 
 app.use(function validateBearerToken(req, res, next) {
     const apiToken = process.env.API_TOKEN
-    //const apiToken = '910237e9-95fd-4ecf-b17b-4af6605a1f01'
+    
     const authToken = req.get('Authorization')
 
     if (!authToken || authToken.split(' ')[1] !== apiToken) {
@@ -50,6 +51,27 @@ app.use(function validateBearerToken(req, res, next) {
 
 app.get('/', (req, res) => {
     res.send('Hello, world!')
+})
+
+app.get('/bookmarks', (req, res, next) => {
+    const knexInstance = req.app.get('db')
+    BooksService.getAllArticles(knexInstance)
+        .then(articles => {
+            res.json(articles)
+        })
+        .catch(next)
+})
+
+app.get('/bookmarks/:bookmark_id', (req, res, next) => {
+    const knexInstance = req.app.get('db')
+    BooksService.getById(knexInstance, req.params.bookmark_id)
+        .then(article => {
+            if(!article) {
+                return res.status(404).json({
+                    error: { message: `Bookmark doesn't exist` }
+                })
+            }
+        })
 })
 
 app.use(bookmarkRouter)
