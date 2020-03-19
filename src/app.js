@@ -53,39 +53,6 @@ app.get('/', (req, res) => {
     res.send('Hello, world!')
 })
 
-app.get('/bookmarks', (req, res, next) => {
-    const knexInstance = req.app.get('db')
-    BooksService.getAllArticles(knexInstance)
-        .then(articles => {
-            res.json(articles)
-        })
-        .catch(next)
-})
-
-app.get('/bookmarks/:bookmark_id', (req, res, next) => {
-    const knexInstance = req.app.get('db')
-    BooksService.getById(knexInstance, req.params.bookmark_id)
-        .then(article => {
-            if(!article) {
-                return res.status(404).json({
-                    error: { message: `Bookmark doesn't exist` }
-                })
-            }
-        })
-})
-
-app.use(bookmarkRouter)
-
-app.use(function errorHandler(error, req, res, next) {
-    let response
-    if (NODE_ENV === 'production') {
-        response = { error: { message: 'server error' }}
-    }
-    else {
-        console.log(error)
-        response = { message: error.message, error }
-    }
-    res.status(500).json(response)
-})
+app.use(bookmarksRouter)
 
 module.exports = app
